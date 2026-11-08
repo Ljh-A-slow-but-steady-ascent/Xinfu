@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol, Sequence
+from typing import Sequence
 
 from backend.app.care.schemas import (
     CarePathway,
@@ -10,16 +10,6 @@ from backend.app.care.schemas import (
     TriageDecision,
     VisualEvidence,
 )
-
-
-class CarePathwayProvider(Protocol):
-    def recommend(
-        self,
-        visual_evidence: VisualEvidence,
-        triage_result: TriageDecision,
-        guideline_context: Sequence[GuidelineReference],
-        request_context: RequestContext,
-    ) -> CarePathway: ...
 
 
 class DeterministicCarePathwayProvider:

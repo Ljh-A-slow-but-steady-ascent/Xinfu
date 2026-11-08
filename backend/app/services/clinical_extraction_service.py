@@ -18,6 +18,11 @@ CLINICAL_FIELDS = (
 )
 EXTRACTED_FIELDS = tuple(item for item in CLINICAL_FIELDS if item not in {"age", "gender"})
 FIELD_LABELS = {
+    "patient_name": "患者姓名",
+    "outpatient_no": "患者编号或门诊号",
+    "sex": "性别",
+    "age": "年龄",
+    "lesion_site": "病灶部位",
     "region": "解剖部位",
     "itch": "是否瘙痒",
     "hurt": "是否疼痛",
@@ -40,6 +45,17 @@ region 只能是给定英文枚举；布尔字段只能是 true、false 或 null
 @dataclass(frozen=True)
 class ClinicalExtractionResult:
     metadata: dict[str, Any]
+    missing_fields: list[str]
+    uncertain_fields: list[str]
+    provider: str
+    model: str
+    privacy_status: str
+    sanitized_fields: list[str]
+
+
+@dataclass(frozen=True)
+class AgentIntakeExtractionResult:
+    intake: dict[str, Any]
     missing_fields: list[str]
     uncertain_fields: list[str]
     provider: str
@@ -102,6 +118,12 @@ def _is_negated(text: str, terms: tuple[str, ...]) -> bool:
 
 
 def _local_bool(text: str, terms: tuple[str, ...]) -> bool | None:
+    for term in terms:
+        labelled = re.search(
+            rf"{re.escape(term)}\s*[：:]?\s*(是|否|有|无|存在|没有|未见)", text
+        )
+        if labelled:
+            return labelled.group(1) in {"是", "有", "存在"}
     if _is_negated(text, terms):
         return False
     return True if any(term in text for term in terms) else None
@@ -132,7 +154,7 @@ def _local_extract(narrative: str, age: int, gender: str) -> dict[str, Any]:
         "hurt": _local_bool(narrative, ("疼痛", "痛")),
         "bleed": _local_bool(narrative, ("出血", "渗血")),
         "grew": _local_bool(narrative, ("增大", "长大", "变大")),
-        "changed": _local_bool(narrative, ("颜色变化", "边界变化", "外观变化", "发生变化")),
+        "changed": _local_bool(narrative, ("近期变化", "颜色变化", "边界变化", "外观变化", "发生变化")),
         "diameter_1": diameter_1,
         "diameter_2": diameter_2,
         "skin_cancer_history": _local_bool(narrative, ("皮肤癌病史", "皮肤肿瘤史")),
@@ -162,13 +184,13 @@ class ClinicalExtractionService:
     ) -> ClinicalExtractionResult:
         # Import lazily: backend.app.chat initializes the Agent, which depends
         # on the service container that owns this extraction service.
-        from backend.app.chat.mock import create_chat_provider
+        from backend.app.chat.factory import create_chat_provider
 
         safe_narrative = self._mask_identity(narrative, identity_values)
         provider = create_chat_provider(model_id)
         payload = {
             "task": "从医生自然语言病例描述中抽取本地多模态模型所需字段。",
-            "known_demographics": {"age": age, "gender": gender},
+            "known_referencegraphics": {"age": age, "gender": gender},
             "clinical_narrative": safe_narrative,
             "allowed_regions": list(REGIONS),
             "required_output": {
@@ -199,6 +221,84 @@ class ClinicalExtractionService:
             model=getattr(provider, "model", model_id),
             privacy_status="SAFE",
             sanitized_fields=decision.sanitized_fields,
+        )
+
+    def extract_agent_intake(
+        self, *, narrative: str, model_id: str
+    ) -> AgentIntakeExtractionResult:
+        """Build a complete Agent intake from one clinician-authored narrative.
+
+        Direct identifiers are deliberately parsed locally and masked before the
+        optional cloud extractor sees the clinical narrative.
+        """
+        text = narrative.strip()
+        name_match = re.search(
+            r"(?:患者姓名|姓名|患者)\s*[：:]?\s*([一-鿿·]{2,20})", text
+        )
+        number_match = re.search(
+            r"(?:门诊号|病历号|患者编号|编号)\s*[：:]?\s*([A-Za-z0-9_-]{2,80})", text,
+            flags=re.I,
+        )
+        phone_match = re.search(r"(?<!\d)(1[3-9]\d{9})(?!\d)", text)
+        age_match = re.search(r"(?<!\d)(\d{1,3})\s*岁", text)
+        patient_name = name_match.group(1) if name_match else ""
+        outpatient_no = number_match.group(1) if number_match else ""
+        phone = phone_match.group(1) if phone_match else ""
+        age = int(age_match.group(1)) if age_match and int(age_match.group(1)) <= 130 else None
+        sex = "女" if re.search(r"(?:性别\s*[：:]?\s*)?女(?:性)?", text) else (
+            "男" if re.search(r"(?:性别\s*[：:]?\s*)?男(?:性)?", text) else ""
+        )
+        region_terms = {
+            "腹部": "ABDOMEN", "上臂": "ARM", "背部": "BACK", "胸部": "CHEST",
+            "耳部": "EAR", "耳廓": "EAR", "面部": "FACE", "脸部": "FACE",
+            "足部": "FOOT", "脚部": "FOOT", "前臂": "FOREARM", "手部": "HAND",
+            "唇部": "LIP", "颈部": "NECK", "鼻部": "NOSE", "头皮": "SCALP", "大腿": "THIGH",
+        }
+        lesion_site = next((label for label in region_terms if label in text), "")
+        metadata: dict[str, Any] = {}
+        uncertain: list[str] = []
+        provider_name = "not_called"
+        provider_model = model_id
+        sanitized_fields: list[str] = []
+        if age is not None and sex:
+            clinical = self.extract(
+                narrative=text,
+                age=age,
+                gender="MALE" if sex == "男" else "FEMALE",
+                model_id=model_id,
+                identity_values=[patient_name, outpatient_no, phone],
+            )
+            metadata = clinical.metadata
+            uncertain = clinical.uncertain_fields
+            provider_name = clinical.provider
+            provider_model = clinical.model
+            sanitized_fields = clinical.sanitized_fields
+        intake = {
+            "patient_name": patient_name,
+            "sex": sex,
+            "age": age,
+            "outpatient_no": outpatient_no,
+            "phone": phone,
+            "medical_history": "",
+            "allergy_history": "",
+            "lesion_site": lesion_site,
+            "chief_complaint": text,
+            "clinical_metadata": metadata,
+        }
+        missing = [
+            field for field in ("patient_name", "outpatient_no", "sex", "age", "lesion_site")
+            if intake.get(field) in (None, "")
+        ]
+        if age is not None and sex:
+            missing.extend(field for field in CLINICAL_FIELDS if metadata.get(field) is None)
+        return AgentIntakeExtractionResult(
+            intake=intake,
+            missing_fields=list(dict.fromkeys(missing)),
+            uncertain_fields=uncertain,
+            provider=provider_name,
+            model=provider_model,
+            privacy_status="SAFE",
+            sanitized_fields=sanitized_fields,
         )
 
 

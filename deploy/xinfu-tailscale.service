@@ -1,0 +1,16 @@
+[Unit]
+Description=Xinfu public access tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+UMask=0077
+ExecStartPre=/usr/bin/mkdir -p %h/.local/share/xinfu/tailscale
+ExecStart=%h/.local/lib/xinfu/tailscale/tailscaled --tun=userspace-networking --socket=%t/xinfu-tailscale.sock --state=%h/.local/share/xinfu/tailscale/state --statedir=%h/.local/share/xinfu/tailscale
+Restart=always
+RestartSec=5
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

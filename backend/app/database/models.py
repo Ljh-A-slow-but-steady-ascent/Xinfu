@@ -135,12 +135,74 @@ class ToolCallRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
-class AgentTraceRecord(Base):
-    __tablename__ = "agent_traces"
+class AgentRunRecord(Base):
+    """Durable state for one clinician-directed harness execution."""
+
+    __tablename__ = "agent_runs"
+    run_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    case_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    current_node: Mapped[str] = mapped_column(String(80))
+    state_json: Mapped[str] = mapped_column(Text, default="{}")
+    pending_action_json: Mapped[str] = mapped_column(Text, default="{}")
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+
+class AgentEventRecord(Base):
+    """Append-only user-visible execution timeline for the Agent Harness."""
+
+    __tablename__ = "agent_events"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    case_id: Mapped[str] = mapped_column(String(64), index=True)
-    step: Mapped[int] = mapped_column(Integer)
-    trace_json: Mapped[str] = mapped_column(Text)
+    run_id: Mapped[str] = mapped_column(String(64), index=True)
+    sequence: Mapped[int] = mapped_column(Integer)
+    event_type: Mapped[str] = mapped_column(String(40), index=True)
+    node: Mapped[str] = mapped_column(String(80))
+    message: Mapped[str] = mapped_column(Text)
+    payload_json: Mapped[str] = mapped_column(Text, default="{}")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class AgentDocumentRecord(Base):
+    """Editable document created by the Agent for one authenticated clinician."""
+
+    __tablename__ = "agent_documents"
+    document_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    conversation_id: Mapped[str] = mapped_column(String(100), index=True)
+    case_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    title: Mapped[str] = mapped_column(String(180))
+    filename: Mapped[str] = mapped_column(String(180))
+    content: Mapped[str] = mapped_column(Text)
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class WorkspaceFolderRecord(Base):
+    """Clinician-owned folder used to organize cases, reports, and documents."""
+
+    __tablename__ = "workspace_folders"
+    folder_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    parent_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class WorkspaceItemRecord(Base):
+    """Folder placement without coupling the clinical tables to UI concerns."""
+
+    __tablename__ = "workspace_items"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    folder_id: Mapped[str] = mapped_column(String(64), index=True)
+    resource_type: Mapped[str] = mapped_column(String(20), index=True)
+    resource_id: Mapped[str] = mapped_column(String(100), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

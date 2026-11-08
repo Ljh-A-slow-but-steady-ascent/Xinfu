@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#203d35">
+  <title>信肤 · 评审病例素材</title>
+  <style>
+    :root{color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#203d35;background:#f4f6ef;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0}main{max-width:860px;margin:auto;padding:38px 24px 30px}a{color:#356d5d;text-underline-offset:4px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.08em}.brand img{width:35px;height:35px}header{padding:34px 0 24px}h1{font-size:clamp(28px,5vw,40px);font-weight:550;letter-spacing:-.04em;margin:0 0 12px}h2{font-size:18px;margin:0 0 9px}p{line-height:1.75;margin:0;color:#6c7e71}small{font-size:13px;line-height:1.6;color:#6c7e71}
+    .download,.case{background:#fff;border:1px solid #dce4d7;border-radius:18px;padding:24px}.download{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:22px}.button{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:49px;background:#356d5d;border:1px solid #356d5d;color:#fff;text-decoration:none;border-radius:10px;padding:12px 22px;font-weight:600;white-space:nowrap}.button:hover{background:#285647}.button:focus-visible,a:focus-visible{outline:3px solid #b9d2ad;outline-offset:4px}
+    .wechat{padding:18px 20px;border-radius:13px;margin-bottom:20px;background:#e5edda;line-height:1.7}.wechat strong{display:block;margin-bottom:3px}.cases{display:grid;grid-template-columns:1fr 1fr;gap:20px}.case{padding:18px}.case-visual{display:flex;align-items:center;gap:15px;min-height:90px;background:#edf2e7;border-radius:10px;margin-bottom:19px;padding:14px 18px;text-decoration:none}.case-number{font-family:Georgia,serif;font-size:40px;color:#8a9e76}.case-visual small{display:block;margin-top:5px}.case-visual>span:last-child{margin-left:auto}.case p{font-size:14px;margin-bottom:16px}.links{display:flex;flex-wrap:wrap;gap:12px 23px;font-size:14px}.steps{padding:25px 2px 8px;font-size:14px;line-height:1.9}.steps strong{font-weight:600}footer{border-top:1px solid #dce4d7;margin-top:24px;padding-top:19px;font-size:12px;line-height:1.8;color:#7c887e}
+    @media(max-width:580px){main{padding:24px 18px}.download{display:block;padding:21px}.button{width:100%;margin-top:17px}.cases{grid-template-columns:1fr}.wechat{font-size:14px}header{padding-top:29px}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><img src="/xinfu-mark.svg" alt="信肤标识">信肤 · XINFU</div>
+    <header><h1>评审病例素材</h1><p>两组病灶原图、临床输入与验收提示词，按手册顺序使用。</p></header>
+    <aside class="wechat"><strong>微信扫码下载</strong>点击右上角「···」→「在浏览器打开」，再点击下方「下载病例包 ZIP」。图片也可点开后长按保存。</aside>
+    <section class="download" aria-label="完整病例包">
+      <div><h2>一次下载全部素材</h2><p>2 张原图 · 2 份临床输入 · CSV · 验收提示词</p><small>ZIP · 3.1 MB · 解压后保留文件名</small></div>
+      <a class="button" href="xinfu-review-cases.zip" download="xinfu-review-cases.zip">下载病例包 ZIP <span aria-hidden="true">↓</span></a>
+    </section>
+    <div class="cases">
+      <article class="case">
+        <a class="case-visual" href="cases/case-a.png" aria-label="查看病例 A 原图"><span class="case-number">A</span><span>查看病灶原图<small>case-a.png</small></span><span aria-hidden="true">↗</span></a>
+        <h2>病例 A · 正式建档与深度取证</h2><p>70 岁男性，面部病灶 9 × 9 mm，近期增大、外观变化。</p>
+        <div class="links"><a href="cases/case-a.png">查看原图</a><a href="cases/case-a.txt">查看临床输入</a></div>
+      </article>
+      <article class="case">
+        <a class="case-visual" href="cases/case-b.png" aria-label="查看病例 B 原图"><span class="case-number">B</span><span>查看病灶原图<small>case-b.png</small></span><span aria-hidden="true">↗</span></a>
+        <h2>病例 B · 增强模式快速分析</h2><p>57 岁女性，胸部病灶 10 × 5 mm，近期增大、外观变化并出血。</p>
+        <div class="links"><a href="cases/case-b.png">查看原图</a><a href="cases/case-b.txt">查看临床输入</a></div>
+      </article>
+    </div>
+    <section class="steps" aria-label="使用顺序"><strong>使用顺序</strong><p>下载并解压 → 打开手册 → 上传对应图片 → 复制同名 TXT 中的病例文字。</p><p><a href="cases/验收提示词.txt">查看全部验收提示词</a> · <a href="/">进入信肤工作台</a></p></section>
+    <footer>图片与临床字段：<a href="https://data.mendeley.com/datasets/zr7vgbcyr2/1">PAD-UFES-20</a> · CC BY 4.0。图片保持原始文件，病例姓名与门诊号为验收标识。</footer>
+  </main>
+</body>
+</html>

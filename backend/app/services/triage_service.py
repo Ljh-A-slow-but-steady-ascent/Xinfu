@@ -7,7 +7,7 @@ from backend.app.database import CaseRepository
 class TriagePolicyService:
     """Deterministic V2 policy. Scores are candidate-set matches, not disease probabilities."""
 
-    POLICY_VERSION = "dermaguard-v2-demo-policy-1"
+    POLICY_VERSION = "xinfu-triage-policy-v1"
     PRIORITY_TOP1 = frozenset(
         {
             "melanoma",

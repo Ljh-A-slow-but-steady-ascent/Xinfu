@@ -1,6 +1,9 @@
 rag:
   top_k: 3
-  evidence_threshold: 0.5
+  candidate_k: 8
+  max_tool_calls: 8
+  max_model_turns: 10
+  max_seconds: 45
 
 vision:
   min_quality: 0.4

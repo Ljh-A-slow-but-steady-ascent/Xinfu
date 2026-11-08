@@ -1,0 +1,20 @@
+[Unit]
+Description=Xinfu clinical workspace
+After=network-online.target
+Wants=network-online.target xinfu-awake.service
+
+[Service]
+Type=simple
+WorkingDirectory=@PROJECT_ROOT@
+Environment=PYTHONUNBUFFERED=1
+Environment=DERMAGUARD_AUTH_DISABLED=0
+Environment=DERMAGUARD_RAG_ADVANCED=1
+Environment=XINFU_VISION_PRELOAD=1
+ExecStart=@PYTHON@ -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8501 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+KillMode=control-group
+
+[Install]
+WantedBy=default.target

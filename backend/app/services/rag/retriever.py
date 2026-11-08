@@ -1,12 +1,19 @@
 from __future__ import annotations
 
+import atexit
+import hashlib
+import math
 import os
 import re
 import select
 import subprocess
+import sys
 import threading
+import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from backend.app.config import AppConfig, get_config
 
@@ -14,7 +21,7 @@ from backend.app.config import AppConfig, get_config
 ROOT = Path(__file__).resolve().parents[4]
 DOCUMENT_DIR = Path(__file__).resolve().parents[2] / "knowledge" / "rag_documents"
 RAG_WORKER = Path(__file__).resolve().parent / "model_worker.py"
-RAG_PYTHON = Path(os.getenv("DERMAGUARD_RAG_PYTHON", "/home/lu/miniforge3/envs/dermfm-zero/bin/python"))
+RAG_PYTHON = Path(os.getenv("DERMAGUARD_RAG_PYTHON") or Path(sys.prefix).parent / "dermfm-zero/bin/python")
 
 QUERY_EXPANSIONS = {
     "bcc": "basal cell carcinoma 基底细胞癌", "基底细胞癌": "basal cell carcinoma bcc",
@@ -43,7 +50,11 @@ def _tokens(text: str) -> list[str]:
 
 def _expand_query(text: str) -> str:
     lowered = text.lower()
-    return " ".join([text, *(value for key, value in QUERY_EXPANSIONS.items() if key in lowered)])
+    return " ".join([
+        text,
+        *(value for key, value in QUERY_EXPANSIONS.items()
+          if (re.search(rf"\b{re.escape(key)}\b", lowered) if key.isascii() else key in lowered)),
+    ])
 
 
 def build_dynamic_query(
@@ -104,23 +115,55 @@ def _structured_chunks(path: Path) -> list[dict[str, Any]]:
             "organization": str(metadata.get("organization", metadata.get("source", "未知"))),
             "year": str(metadata.get("year", "未标注")), "section": heading,
             "page": str(metadata.get("page", "网页资料")), "version": str(metadata.get("version", "未标注")),
-            "content": text,
+            "content": text, "chunk_index": index - 1,
+            "file_key": path.name,
         })
     return chunks
 
 
-def _lexical_fallback(query: str, documents: list[dict[str, Any]], corpus_tokens: list[list[str]]) -> list[float]:
-    """Dependency-free fallback used only when the local embedding worker is unavailable."""
-    query_tokens = set(_tokens(query))
-    lowered = query.lower()
-    scores: list[float] = []
-    for doc, tokens in zip(documents, corpus_tokens, strict=True):
-        overlap = len(query_tokens.intersection(tokens))
-        phrases = [str(item).lower() for item in [*doc.get("conditions", []), *doc.get("aliases", [])]]
-        exact = sum(1 for phrase in phrases if len(phrase) >= 3 and phrase in lowered)
-        scores.append(float(overlap + 4 * exact))
-    maximum = max(scores, default=0.0)
-    return [score / maximum if maximum else 0.0 for score in scores]
+class BM25Index:
+    """Small in-memory BM25 index; no additional service or model is required."""
+
+    def __init__(self, corpus: list[list[str]]) -> None:
+        self.frequencies = [Counter(tokens) for tokens in corpus]
+        self.lengths = [len(tokens) for tokens in corpus]
+        self.average_length = sum(self.lengths) / max(1, len(corpus))
+        document_frequency = Counter(token for tokens in self.frequencies for token in tokens)
+        self.idf = {
+            token: math.log(1 + (len(corpus) - count + 0.5) / (count + 0.5))
+            for token, count in document_frequency.items()
+        }
+
+    def score(self, query: str) -> list[float]:
+        query_tokens = set(_tokens(query))
+        scores = []
+        for frequencies, length in zip(self.frequencies, self.lengths, strict=True):
+            norm = 1.2 * (0.25 + 0.75 * length / max(1, self.average_length))
+            scores.append(sum(
+                self.idf.get(token, 0) * frequencies[token] * 2.2 / (frequencies[token] + norm)
+                for token in query_tokens if frequencies[token]
+            ))
+        return scores
+
+
+def _canonical_source(source: str, fallback: str) -> str:
+    parts = urlsplit(source)
+    if parts.scheme in {"http", "https"} and parts.netloc:
+        # Keep meaningful query parameters, removing only tracking and fragments.
+        parameters = sorted((key, value) for key, value in parse_qsl(parts.query)
+                            if not key.lower().startswith("utm_") and key.lower() not in {"fbclid", "gclid"})
+        return urlunsplit(("https", parts.netloc.lower().removeprefix("www."), parts.path.rstrip("/"), urlencode(parameters), ""))
+    return source.strip() or fallback
+
+
+def _source_kind(source: str) -> str:
+    if source.startswith("local_"):
+        return "local_rule"
+    hostname = (urlsplit(source).hostname or "").lower()
+    trusted = ("aad.org", "nice.org.uk", "cdc.gov", "dermnetnz.org")
+    if any(hostname == domain or hostname.endswith("." + domain) for domain in trusted):
+        return "guideline_summary"
+    return "local_document"
 
 
 def _evidence_category(text: str) -> str:
@@ -135,59 +178,148 @@ def _evidence_category(text: str) -> str:
     return next((name for name, terms in groups if any(term in lowered for term in terms)), "信息缺口")
 
 
+def _evidence_types(text: str) -> list[str]:
+    groups = {
+        "冲突证据": ("冲突", "不能替代", "不支持", "局限", "不能确诊", "不能判断", "不能排除"),
+        "转诊依据": ("转诊", "急诊", "优先", "就医", "皮肤科"),
+        "检查依据": ("活检", "检查", "病理", "评估", "皮肤镜"),
+        "鉴别依据": ("鉴别", "边界", "颜色", "表现", "形状", "ABCDE"),
+        "风险依据": ("风险", "恶性", "红旗", "出血", "变化"),
+    }
+    return [name for name, words in groups.items() if any(word.lower() in text.lower() for word in words)] or ["信息缺口"]
+
+
 class RagModelClient:
-    """Persistent medical embedding worker with a local lexical availability fallback."""
+    """One local embedding worker with bounded waits and a failure cooldown."""
 
     def __init__(self) -> None:
         self.process: subprocess.Popen[str] | None = None
         self.lock = threading.Lock()
+        self.unavailable_until = 0.0
+
+    def close(self) -> None:
+        process, self.process = self.process, None
+        if process is not None:
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=3)
+            for stream in (process.stdin, process.stdout):
+                if stream:
+                    stream.close()
 
     def _start(self) -> None:
         if self.process is not None and self.process.poll() is None:
             return
+        self.close()
         self.process = subprocess.Popen(
             [str(RAG_PYTHON), str(RAG_WORKER)], cwd=str(ROOT), stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, bufsize=1,
         )
+        assert self.process.stdin and self.process.stdout
+        os.set_blocking(self.process.stdin.fileno(), False)
+        os.set_blocking(self.process.stdout.fileno(), False)
 
-    def request(self, payload: dict[str, Any]) -> dict[str, Any]:
+    def request(self, payload: dict[str, Any], timeout: float | None = None) -> dict[str, Any]:
         import json
-        with self.lock:
-            self._start()
-            assert self.process and self.process.stdin and self.process.stdout
-            self.process.stdin.write(json.dumps(payload, ensure_ascii=False) + "\n"); self.process.stdin.flush()
-            ready, _, _ = select.select([self.process.stdout], [], [], 60.0)
-            if not ready:
-                self.process.kill()
-                self.process = None
-                raise TimeoutError("本地医学嵌入模型响应超时")
-            line = self.process.stdout.readline()
-            if not line:
-                raise RuntimeError("本地RAG模型进程未返回结果")
-            result = json.loads(line)
-            if result.get("error"):
-                raise RuntimeError(str(result["error"]))
-            return result
+        maximum_wait = min(60.0, max(1.0, float(os.getenv("DERMAGUARD_RAG_WORKER_TIMEOUT", "20"))))
+        wait = maximum_wait if timeout is None else min(maximum_wait, max(0.0, timeout))
+        if wait <= 0:
+            raise TimeoutError("本地嵌入工具预算已耗尽")
+        deadline = time.monotonic() + wait
+        # The lock covers the entire request/response pair, including the cooldown.
+        # It prevents concurrent callers from starting duplicate failed workers.
+        if not self.lock.acquire(timeout=wait):
+            raise TimeoutError("本地嵌入队列繁忙，使用 BM25")
+        try:
+            if time.monotonic() < self.unavailable_until:
+                raise RuntimeError("本地嵌入暂不可用，使用 BM25")
+            try:
+                self._start()
+                assert self.process and self.process.stdin and self.process.stdout
+                message = (json.dumps(payload, ensure_ascii=False) + "\n").encode()
+                sent = 0
+                while sent < len(message):
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("本地医学嵌入模型响应超时")
+                    _, writable, _ = select.select([], [self.process.stdin], [], remaining)
+                    if not writable:
+                        raise TimeoutError("本地医学嵌入模型响应超时")
+                    try:
+                        sent += os.write(self.process.stdin.fileno(), message[sent:sent + 65536])
+                    except BlockingIOError:
+                        continue
+                response = bytearray()
+                while b"\n" not in response:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("本地医学嵌入模型响应超时")
+                    readable, _, _ = select.select([self.process.stdout], [], [], remaining)
+                    if not readable:
+                        raise TimeoutError("本地医学嵌入模型响应超时")
+                    try:
+                        block = os.read(self.process.stdout.fileno(), 65536)
+                    except BlockingIOError:
+                        continue
+                    if not block:
+                        raise RuntimeError("本地 RAG 模型进程未返回结果")
+                    response.extend(block)
+                    if len(response) > 8_000_000:
+                        raise RuntimeError("本地 RAG 响应超出限制")
+                result = json.loads(bytes(response).split(b"\n", 1)[0])
+                if result.get("error"):
+                    raise RuntimeError(str(result["error"]))
+                return result
+            except Exception:
+                self.unavailable_until = time.monotonic() + 60.0
+                self.close()
+                raise
+        finally:
+            self.lock.release()
+
+
+# Several application services use the same local corpus. Share its model process.
+_MODEL_CLIENT = RagModelClient()
+atexit.register(_MODEL_CLIENT.close)
 
 
 class LocalRagRetriever:
-    """Medical dense retrieval with a deterministic lexical availability fallback."""
+    """Multi-query BM25 + medical Dense retrieval, fused with reciprocal ranks.
+
+    Search scores describe relevance only. A caller must read and assess evidence
+    before deciding whether it supports an answer.
+    """
 
     def __init__(self, config: AppConfig | None = None, document_dir: Path = DOCUMENT_DIR) -> None:
         self.config = config or get_config()
         self.documents = [chunk for path in sorted(document_dir.glob("*.md")) for chunk in _structured_chunks(path)]
+        # Preserve the first legacy document id, disambiguating reused ids across
+        # distinct source pages. Chunk ids are globally unique and deterministic.
+        document_sources: dict[str, str] = {}
+        used_ids: set[str] = set()
+        for doc in self.documents:
+            original_id = str(doc["document_id"])
+            source = _canonical_source(str(doc.get("source", "")), str(doc["file_key"]))
+            suffix = hashlib.sha256(source.encode()).hexdigest()[:8]
+            previous_source = document_sources.setdefault(original_id, source)
+            if previous_source != source:
+                doc["document_id"] = f"{original_id}~{suffix}"
+                doc["id"] = str(doc["id"]).replace(original_id, str(doc["document_id"]), 1)
+            if str(doc["id"]) in used_ids:
+                file_suffix = hashlib.sha256(str(doc["file_key"]).encode()).hexdigest()[:8]
+                doc["id"] = f"{doc['id']}~{file_suffix}"
+            used_ids.add(str(doc["id"]))
+            doc["canonical_source"] = source
+            doc["source_kind"] = _source_kind(str(doc.get("source", "")))
+            doc["authoritative"] = doc["source_kind"] == "guideline_summary"
+        self.by_id = {str(doc["id"]): doc for doc in self.documents}
         self.searchable_documents = [self._searchable(doc) for doc in self.documents]
         self.corpus_tokens = [_tokens(text) for text in self.searchable_documents]
-        self.model_client = RagModelClient()
-        self.last_backend = "医学 Dense Retrieval"
-        if self.advanced_enabled and self.searchable_documents:
-            try:
-                # Pay model loading and corpus encoding cost while the API starts,
-                # instead of making the first user query wait for it.
-                self.model_client.request({"action": "prepare", "documents": self.searchable_documents})
-            except Exception:
-                # Retrieval remains available through the lightweight local fallback.
-                pass
+        self.bm25 = BM25Index(self.corpus_tokens)
+        self.model_client = _MODEL_CLIENT
+        # Lazy loading keeps application construction free of unbudgeted model
+        # waits. The first budgeted search encodes and caches the corpus.
+        self.last_backend = "BM25 + IlhaEmbed Dense / RRF（待检索）" if self.advanced_enabled else "BM25（Dense 未开启）"
 
     @property
     def advanced_enabled(self) -> bool:
@@ -199,60 +331,114 @@ class LocalRagRetriever:
                      *doc.get("aliases", []), *doc.get("symptoms", []), *doc.get("tags", [])]
         return " ".join([*important, *important, str(doc["content"])])
 
-    def _rank(self, query: str) -> list[tuple[float, dict[str, Any]]]:
-        scores: list[float] | None = None
-        if self.advanced_enabled:
-            try:
-                scores = [
-                    max(0.0, min(1.0, float(value)))
-                    for value in self.model_client.request(
-                        {"action": "dense", "query": query, "documents": self.searchable_documents}
-                    )["scores"]
-                ]
-                self.last_backend = "医学 Dense Retrieval"
-            except Exception:
-                scores = None
-        if scores is None:
-            scores = _lexical_fallback(query, self.documents, self.corpus_tokens)
-            self.last_backend = "轻量本地词法 fallback"
-        order = sorted(
-            range(len(self.documents)),
-            key=lambda index: (-scores[index], self.documents[index]["id"]),
-        )
-        return [(scores[index], self.documents[index]) for index in order]
+    def _result(self, doc: dict[str, Any], backend: str = "local_read") -> dict[str, Any]:
+        return {
+            "id": str(doc["id"]), "document_id": str(doc["document_id"]), "title": str(doc["title"]),
+            "content": str(doc["content"]), "source": str(doc.get("source", "")),
+            "score": 0.0, "evidence_type": _evidence_category(str(doc["content"])),
+            "evidence_types": _evidence_types(str(doc["content"])), "evidence_status": "待核验",
+            "citation": {"document": str(doc["document_name"]), "organization": str(doc["organization"]),
+                "year": str(doc["year"]), "section": str(doc["section"]), "page": str(doc["page"]),
+                "version": str(doc["version"])},
+            "retrieval_backend": backend, "query": "",
+            "source_kind": str(doc["source_kind"]), "authoritative": bool(doc["authoritative"]),
+            "canonical_source": str(doc["canonical_source"]),
+            "stored_in_database": True, "source_scope": "本地知识库",
+        }
 
     def search(self, query: str, top_k: int | None = None) -> list[dict[str, Any]]:
-        limit = top_k or self.config.rag.top_k
-        dynamic_query = _expand_query(query)
-        ranked = self._rank(dynamic_query)
-        # Prefer evidence from different source documents. Structured chunking
-        # can otherwise fill Top-K with three adjacent paragraphs from one page.
-        diverse_ranked = []
-        seen_documents: set[str] = set()
-        for score, doc in ranked:
-            document_id = str(doc["document_id"])
-            if document_id in seen_documents:
+        return self.search_many([query], top_k=top_k or self.config.rag.top_k)
+
+    def search_many(self, queries: list[str], top_k: int = 12, timeout: float | None = None) -> list[dict[str, Any]]:
+        deadline = None if timeout is None else time.monotonic() + max(0.0, timeout)
+        queries = list(dict.fromkeys(query.strip()[:1200] for query in queries if query.strip()))[:8]
+        if not queries or not self.documents:
+            self.last_backend = "本地知识库（空查询或空语料）"
+            return []
+        limit = max(1, min(40, top_k))
+        expanded = [_expand_query(query) for query in queries]
+        lexical = [self.bm25.score(query) for query in expanded]
+        dense: list[list[float]] | None = None
+        if self.advanced_enabled:
+            try:
+                rows = self.model_client.request({
+                    "action": "dense_queries", "queries": expanded, "documents": self.searchable_documents,
+                }, timeout=None if deadline is None else max(0.0, deadline - time.monotonic()))["scores"]
+                if len(rows) != len(expanded) or any(len(row) != len(self.documents) for row in rows):
+                    raise ValueError("本地嵌入分数形状无效")
+                dense = [[float(value) for value in row] for row in rows]
+                if any(not math.isfinite(value) for row in dense for value in row):
+                    raise ValueError("本地嵌入分数包含非有限值")
+                backend = "BM25 + IlhaEmbed Dense / RRF"
+            except Exception:
+                dense = None
+                backend = "BM25（Dense 不可用，已降级）"
+        else:
+            backend = "BM25（Dense 未开启）"
+        # Compatibility only. Request results carry their own local backend;
+        # another concurrent search may update this shared diagnostic field.
+        self.last_backend = backend
+
+        rrf = [0.0] * len(self.documents)
+        # Bound per-channel candidate depth; do not reward zero lexical matches.
+        for channel in [lexical, *([dense] if dense is not None else [])]:
+            for row in channel:
+                ranked = sorted(range(len(row)), key=lambda i: (-row[i], str(self.documents[i]["id"])))
+                for rank, index in enumerate((i for i in ranked if row[i] > 0), start=1):
+                    if rank > 24:
+                        break
+                    rrf[index] += 1.0 / (60 + rank)
+        order = sorted(range(len(self.documents)), key=lambda i: (-rrf[i], str(self.documents[i]["id"])))
+        # Return independent source pages. Reading neighbors supplies adjacent
+        # sections without presenting one page as several independent sources.
+        selected: list[int] = []
+        seen_sources: set[str] = set()
+        for index in order:
+            if rrf[index] <= 0:
                 continue
-            diverse_ranked.append((score, doc))
-            seen_documents.add(document_id)
-            if len(diverse_ranked) == limit:
+            source = str(self.documents[index]["canonical_source"])
+            if source not in seen_sources:
+                selected.append(index)
+                seen_sources.add(source)
+            if len(selected) >= limit:
                 break
-        if len(diverse_ranked) < limit:
-            selected_ids = {str(doc["id"]) for _, doc in diverse_ranked}
-            diverse_ranked.extend(
-                (score, doc) for score, doc in ranked
-                if str(doc["id"]) not in selected_ids
-            )
+        query_tokens = set(_tokens(" ".join(expanded)))
         results = []
-        for score, doc in diverse_ranked[:limit]:
-            results.append({
-                "id": str(doc["id"]), "document_id": str(doc["document_id"]), "title": str(doc["title"]),
-                "content": str(doc["content"]), "source": str(doc.get("source", "")),
-                "score": max(0.0, min(1.0, score)), "evidence_type": _evidence_category(str(doc["content"])),
-                "evidence_status": "充分" if score >= self.config.rag.evidence_threshold else "当前知识库证据不足",
-                "citation": {"document": str(doc["document_name"]), "organization": str(doc["organization"]),
-                    "year": str(doc["year"]), "section": str(doc["section"]), "page": str(doc["page"]),
-                    "version": str(doc["version"])},
-                "retrieval_backend": self.last_backend, "query": dynamic_query,
+        for index in selected[:limit]:
+            bm25 = max(row[index] for row in lexical)
+            semantic = max((row[index] for row in dense), default=0.0) if dense is not None else None
+            matched = sorted(query_tokens.intersection(self.corpus_tokens[index]))
+            coverage = len(matched) / max(1, len(query_tokens))
+            # Absolute bounded transform, never normalized by this query's best
+            # result. This is a ranking hint, not a calibrated truth probability.
+            lexical_relevance = (1.0 - math.exp(-bm25 / 8.0)) * math.sqrt(coverage)
+            score = lexical_relevance if semantic is None else 0.35 * lexical_relevance + 0.65 * max(0, semantic)
+            item = self._result(self.documents[index], backend=backend)
+            item.update({
+                "score": round(max(0.0, min(1.0, score)), 6),
+                "retrieval_scores": {"bm25": round(bm25, 6), "dense": semantic, "rrf": round(rrf[index], 8)},
+                "lexical_coverage": round(coverage, 6), "matched_terms": matched,
+                "query": "；".join(expanded), "queries": queries,
             })
+            results.append(item)
+        return results
+
+    def read(self, evidence_ids: list[str], include_neighbors: bool = True) -> list[dict[str, Any]]:
+        requested = list(dict.fromkeys(str(item) for item in evidence_ids))[:12]
+        primary_ids = set(requested)
+        selected: dict[str, tuple[dict[str, Any], str]] = {}
+        for evidence_id in requested:
+            doc = self.by_id.get(evidence_id)
+            if doc is None:
+                continue
+            selected[evidence_id] = (doc, evidence_id)
+            if include_neighbors:
+                for neighbor in self.documents:
+                    if neighbor["file_key"] == doc["file_key"] and abs(neighbor["chunk_index"] - doc["chunk_index"]) == 1:
+                        selected.setdefault(str(neighbor["id"]), (neighbor, evidence_id))
+        results = []
+        for evidence_id, (doc, requested_id) in selected.items():
+            item = self._result(doc)
+            item.update({"is_neighbor": evidence_id not in primary_ids, "requested_evidence_id": requested_id})
+            results.append(item)
         return results

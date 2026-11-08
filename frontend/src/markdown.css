@@ -1,0 +1,172 @@
+.rich-markdown {
+  --md-ink: var(--ink, #243c3b);
+  --md-muted: var(--muted, #71817f);
+  --md-accent: var(--accent, #21796c);
+  min-width: 0;
+  color: var(--md-ink);
+  font-size: 14px;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.rich-markdown > :first-child { margin-top: 0; }
+.rich-markdown > :last-child { margin-bottom: 0; }
+.rich-markdown .md-paragraph { margin: 0 0 1.05em; }
+.rich-markdown .md-heading {
+  color: var(--md-ink);
+  font-weight: 650;
+  line-height: 1.5;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+.rich-markdown h1.md-heading { margin: 1.65em 0 .7em; font-size: 1.65em; }
+.rich-markdown h2.md-heading { margin: 1.55em 0 .65em; font-size: 1.35em; }
+.rich-markdown h3.md-heading { margin: 1.45em 0 .6em; font-size: 1.13em; }
+.rich-markdown h4.md-heading { margin: 1.3em 0 .5em; font-size: 1em; }
+.rich-markdown > .md-heading:first-child,
+.rich-markdown > .md-paragraph:first-child { margin-top: 0; }
+.rich-markdown > .md-paragraph:last-child { margin-bottom: 0; }
+.rich-markdown strong { font-weight: 650; color: var(--md-ink); }
+.rich-markdown em { color: #61716d; }
+.rich-markdown ul,
+.rich-markdown ol { margin: .75em 0 1.1em; padding-left: 1.55em; }
+.rich-markdown li { margin: .38em 0; padding-left: .15em; }
+.rich-markdown li::marker { color: var(--md-accent); font-weight: 600; }
+.rich-markdown li > p { margin-bottom: .45em; }
+.rich-markdown li > ul,
+.rich-markdown li > ol { margin: .3em 0 .65em; }
+.rich-markdown .contains-task-list { padding-left: .2em; list-style: none; }
+.rich-markdown .task-list-item { display: list-item; }
+.rich-markdown .task-list-item input {
+  width: 14px; height: 14px; margin: 0 9px 0 0; vertical-align: -2px;
+  accent-color: var(--md-accent); border-radius: 4px;
+}
+.rich-markdown a {
+  color: var(--md-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--md-accent), transparent 65%);
+  text-underline-offset: 4px;
+  border: 0;
+  transition: text-decoration-color 150ms ease, color 150ms ease;
+}
+.rich-markdown a:hover { text-decoration-color: currentColor; }
+.rich-markdown a:focus-visible,
+.rich-markdown [tabindex]:focus-visible { outline: 2px solid #4b9b8f; outline-offset: 4px; }
+.rich-markdown blockquote {
+  margin: 1.3em 0;
+  padding: 14px 20px;
+  border: 1px solid #e2eae4;
+  border-left: 3px solid #74a597;
+  border-radius: 0 12px 12px 0;
+  background: #f4f7f3;
+  color: #526762;
+}
+.rich-markdown blockquote p:last-child { margin-bottom: 0; }
+.rich-markdown .md-divider {
+  height: 1px; margin: 1.9em 0; border: 0;
+  background: linear-gradient(90deg, #d9e2dc, #e8eee9 75%, transparent);
+}
+.rich-markdown :not(pre) > code {
+  padding: .18em .42em;
+  border: 1px solid #e3e9e5;
+  border-radius: 5px;
+  background: #f0f4f0;
+  color: #276259;
+  font: .86em/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  word-break: break-word;
+}
+.rich-markdown .md-code-block {
+  margin: 1.2em 0 1.35em;
+  overflow: hidden;
+  border: 1px solid #263f40;
+  border-radius: 12px;
+  background: #142c30;
+  box-shadow: 0 5px 14px #102e3410;
+  text-wrap: initial;
+}
+.rich-markdown .md-code-toolbar {
+  height: 39px; padding: 0 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid #ffffff0d;
+  background: #1b3438;
+  color: #a9bebb;
+  font: 11px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.rich-markdown .md-code-toolbar > span,
+.rich-markdown .md-code-toolbar button { display: inline-flex; align-items: center; gap: 7px; }
+.rich-markdown .md-code-toolbar button {
+  min-width: 55px; padding: 5px 7px;
+  border: 1px solid transparent; border-radius: 5px;
+  background: transparent; color: #b8cbc7;
+  font: inherit; cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.rich-markdown .md-code-toolbar button:hover { background: #ffffff0b; color: #eef7f2; }
+.rich-markdown .md-code-toolbar button.is-copied { color: #b6dbad; }
+.rich-markdown .md-code-block pre {
+  margin: 0; padding: 18px 20px 20px;
+  overflow-x: auto;
+  border: 0; border-radius: 0;
+  background: transparent; color: #e4eeea;
+  font: 12px/1.85 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  tab-size: 2;
+  scrollbar-color: #4a6364 transparent;
+  scrollbar-width: thin;
+}
+.rich-markdown .md-code-block code { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; white-space: pre; }
+.rich-markdown .md-token-comment { color: #7f9b98; font-style: italic; }
+.rich-markdown .md-token-string { color: #c4dca3; }
+.rich-markdown .md-token-keyword { color: #a4c5ef; }
+.rich-markdown .md-token-number { color: #e8c695; }
+.rich-markdown .md-table-scroll {
+  width: 100%; max-height: 440px; margin: 1.2em 0 1.4em;
+  overflow: auto; border: 1px solid #dde6df; border-radius: 11px;
+  scrollbar-color: #c6d1c9 transparent; scrollbar-width: thin;
+  background: #fff;
+}
+.rich-markdown .md-table-scroll table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; line-height: 1.65; }
+.rich-markdown .md-table-scroll th,
+.rich-markdown .md-table-scroll td { padding: 11px 15px; min-width: 90px; border-bottom: 1px solid #e8ede9; text-align: left; vertical-align: top; }
+.rich-markdown .md-table-scroll th { position: sticky; top: 0; z-index: 1; background: #f1f5f0; color: #496159; font-weight: 650; white-space: nowrap; }
+.rich-markdown .md-table-scroll tr:last-child td { border-bottom: 0; }
+.rich-markdown .md-table-scroll tbody tr { transition: background 120ms ease; }
+.rich-markdown .md-table-scroll tbody tr:hover { background: #f8faf6; }
+.rich-markdown .md-table-scroll td code { white-space: normal; }
+.rich-markdown .md-citation {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 21px; margin: 0 3px; padding: 0 7px;
+  border: 1px solid #d5e4d9; border-radius: 5px;
+  background: #edf4ed; color: #4d7664;
+  font: 10px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  vertical-align: 1px; white-space: nowrap;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.rich-markdown .md-citation:hover,
+.rich-markdown .md-citation:focus-visible { background: #e4eee2; border-color: #a6c3ab; }
+.rich-markdown .md-image-frame {
+  position: relative; display: block; max-width: 100%; width: fit-content;
+  min-width: 120px; margin: 1.1em 0 1.3em; overflow: hidden;
+  border: 1px solid #e0e7e0; border-radius: 12px; background: #f4f7f2;
+}
+.rich-markdown .md-image-frame img { display: block; max-width: 100%; max-height: 520px; height: auto; object-fit: contain; opacity: 0; transition: opacity 240ms ease; }
+.rich-markdown .md-image-frame.is-loaded img { opacity: 1; }
+.rich-markdown .md-image-frame.is-loading { min-height: 100px; }
+.rich-markdown .md-image-placeholder { position: absolute; inset: 0; background: linear-gradient(100deg, #f1f5ee 15%, #e8eee3 40%, #f1f5ee 65%); background-size: 250% 100%; animation: md-shimmer 1.6s ease-in-out infinite; }
+.rich-markdown .md-image-caption { display: block; padding: 9px 12px; border-top: 1px solid #e0e7e0; color: #77857b; font-size: 11px; text-align: center; line-height: 1.6; }
+.rich-markdown .md-image-state { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 82px; margin: 1em 0; padding: 16px 20px; border: 1px solid #e0e7df; border-radius: 11px; background: #f5f7f2; color: #7c8b80; font-size: 12px; }
+.rich-markdown .md-image-error { background: #f7f6f2; color: #8e8c80; border-style: dashed; }
+.rich-markdown .md-image-spinner { animation: md-spin .85s linear infinite; }
+@keyframes md-shimmer { to { background-position: -160% 0; } }
+@keyframes md-spin { to { transform: rotate(360deg); } }
+@media (max-width: 640px) {
+  .rich-markdown { font-size: 13px; line-height: 1.85; }
+  .rich-markdown h1.md-heading { font-size: 1.45em; }
+  .rich-markdown h2.md-heading { font-size: 1.25em; }
+  .rich-markdown .md-code-block pre { padding: 14px; font-size: 11px; }
+  .rich-markdown .md-table-scroll th,
+  .rich-markdown .md-table-scroll td { padding: 9px 11px; }
+  .rich-markdown blockquote { padding: 11px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rich-markdown *, .rich-markdown *::before, .rich-markdown *::after { animation: none !important; transition: none !important; }
+}

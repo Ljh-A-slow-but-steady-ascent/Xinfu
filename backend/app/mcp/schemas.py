@@ -22,12 +22,6 @@ class ToolDefinition(StrictModel):
     input_schema: dict[str, Any]
 
 
-class ToolInvocation(StrictModel):
-    name: str
-    arguments: dict[str, Any]
-    context: ToolContext = Field(default_factory=ToolContext)
-
-
 class ToolInvocationResult(StrictModel):
     tool_name: str
     result: dict[str, Any]

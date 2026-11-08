@@ -7,7 +7,7 @@ import os
 import secrets
 from datetime import datetime, timedelta
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Header, HTTPException
 
 from backend.app.database import CaseRepository
 
@@ -43,10 +43,15 @@ def token_hash(token: str) -> str:
 
 
 def bootstrap_user(repository: CaseRepository) -> None:
-    username = os.getenv("JIDERMA_ADMIN_USERNAME", "").strip()
-    password = os.getenv("JIDERMA_ADMIN_PASSWORD", "").strip()
+    username = os.getenv("XINFU_ADMIN_USERNAME", "").strip()
+    password = os.getenv("XINFU_ADMIN_PASSWORD", "").strip()
     if username and password and repository.get_user_by_username(username) is None:
-        repository.create_user(username, hash_password(password), os.getenv("JIDERMA_ADMIN_NAME", "霁肤医生"))
+        repository.create_user(
+            username,
+            hash_password(password),
+            os.getenv("XINFU_ADMIN_NAME", "信肤管理员"),
+            role="admin",
+        )
 
 
 def login(repository: CaseRepository, username: str, password: str) -> tuple[str, dict] | None:
@@ -76,10 +81,3 @@ async def require_user(authorization: str | None = Header(default=None)) -> dict
     if user is None:
         raise HTTPException(status_code=401, detail="登录已失效，请重新登录")
     return _auth_repository.user_public(user)
-
-
-CurrentUser = dict
-
-
-async def current_user(user: dict = Depends(require_user)) -> dict:
-    return user

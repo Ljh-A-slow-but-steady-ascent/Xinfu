@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.app.auth import get_auth_repository, login, require_user, token_hash

@@ -1,1 +1,1 @@
-"""DermaGuard application package."""
+"""Xinfu application package."""

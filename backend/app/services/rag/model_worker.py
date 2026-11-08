@@ -82,16 +82,24 @@ def similarity(query: str, documents: list[str]) -> list[float]:
     return (document_vectors @ query_vector).tolist()
 
 
+def similarity_many(queries: list[str], documents: list[str]) -> list[list[float]]:
+    document_vectors = prepare_documents(documents)
+    query_vectors = encode(queries)
+    return (query_vectors @ document_vectors.T).tolist()
+
+
 def main() -> None:
     for line in sys.stdin:
         try:
             payload = json.loads(line)
-            if payload["action"] not in {"prepare", "dense"}:
+            if payload["action"] not in {"prepare", "dense", "dense_queries"}:
                 raise ValueError(f"unknown action: {payload['action']}")
             documents = list(payload["documents"])
             if payload["action"] == "prepare":
                 prepare_documents(documents)
                 result = {"prepared": len(documents), "device": str(DEVICE)}
+            elif payload["action"] == "dense_queries":
+                result = {"scores": similarity_many(list(payload["queries"]), documents)}
             else:
                 result = {"scores": similarity(str(payload["query"]), documents)}
         except Exception as exc:

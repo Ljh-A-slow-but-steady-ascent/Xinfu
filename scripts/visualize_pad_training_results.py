@@ -11,7 +11,7 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RESULTS = ROOT / "artifacts" / "training" / "pad_multimodal_mvp"
+RESULTS = ROOT / "artifacts" / "training" / "pad_multimodal"
 MODES = {
     "image_only": "Image Only",
     "text_only": "Clinical Text Only",

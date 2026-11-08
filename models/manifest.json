@@ -1,0 +1,120 @@
+{
+  "format_version": 1,
+  "models": [
+    {
+      "id": "adapters",
+      "repo_id": "Ljh-hgf/Xinfu-Adapters",
+      "revision": "35fbc8ecd33d3470e2fd813672a14d0f090289b3",
+      "local_dir": "artifacts/training",
+      "files": [
+        {
+          "path": "pad_multimodal/image_only/best.pt",
+          "bytes": 1064649,
+          "sha256": "0165130196d7e7853662fc645cfbe632b047e3ee675b3cdab06f6b4e1ca0d2d3"
+        },
+        {
+          "path": "pad_multimodal/text_only/best.pt",
+          "bytes": 4214978,
+          "sha256": "99f89d13a542cc486678e66a4c2812df99bf54594c1c8940d1847950fb5ca72a"
+        },
+        {
+          "path": "pad_multimodal/image_text/best.pt",
+          "bytes": 55677230,
+          "sha256": "a1dabfe7b29e558d70c13b3fc641f188179391a22f11abe8bbbb229feea326ef"
+        },
+        {
+          "path": "ham7_linear_head/ham7_linear_head.pt",
+          "bytes": 25189,
+          "sha256": "c1ec7efacae148e229188daf52d2bc027099818be82a968128bd2406f564416a"
+        }
+      ]
+    },
+    {
+      "id": "dermfm",
+      "repo_id": "redlessone/DermFM-Zero",
+      "revision": "2039b405065ff5ead7e58c04ec5604bd1e4a7769",
+      "local_dir": "weights/DermFM-Zero-Open",
+      "gated": true,
+      "files": [
+        {
+          "path": "open_clip_config.json",
+          "bytes": 614,
+          "sha256": "8dc39de2b8c4877089b5a58be0a6ca6048f489c3a2f44aef89890e9338d75f07"
+        },
+        {
+          "path": "open_clip_pytorch_model.bin",
+          "bytes": 1659299303,
+          "sha256": "83f498e3ee5e0963a14356b2d0facde640a2f108972d12437705a805f30d2918"
+        }
+      ]
+    },
+    {
+      "id": "embedding",
+      "repo_id": "weemed/IlhaEmbed",
+      "revision": "1668c2fd441ef60627b20356ac60ebdda62c54ad",
+      "local_dir": "weights/rag/IlhaEmbed",
+      "gated": false,
+      "files": [
+        {
+          "path": "config.json",
+          "bytes": 1826,
+          "sha256": "aade3e99208cd1254fc13dad5d5221f61089712036f207aa06099c99258ad899"
+        },
+        {
+          "path": "model.safetensors",
+          "bytes": 152499656,
+          "sha256": "477657e168857fb527f954b2e430679bd05b4bcb5576bc6c129de8f5d5170f9b"
+        },
+        {
+          "path": "tokenizer.json",
+          "bytes": 1312401,
+          "sha256": "b01ad1665096c2dae2a7b45265629ef94e2a197a3d11b69b1e1435f95991cc03"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "bytes": 636,
+          "sha256": "0bd6f388bc813908f40cff3c5cdf0065a444b351d19b40a086f138a80a9a7747"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "bytes": 870,
+          "sha256": "e83cab90dfc594d568809f9a6c6ce31e5c703ad4fcd04a3519a914017da326b9"
+        }
+      ]
+    },
+    {
+      "id": "text",
+      "repo_id": "neuml/pubmedbert-base-embeddings",
+      "revision": "b79526d6ef3645e0df4530322e266f24c829f5ef",
+      "local_dir": "weights/text/PubMedBERT",
+      "gated": false,
+      "files": [
+        {
+          "path": "config.json",
+          "bytes": 667,
+          "sha256": "d384b4ca85c7c1eb07767aa69479b722d255f8a40e4a484c6428982b8f18baca"
+        },
+        {
+          "path": "tokenizer.json",
+          "bytes": 706277,
+          "sha256": "6e046044df8a2fcedb10607075dca187cae61d806c0d80a96c5b81017edc90c9"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "bytes": 1297,
+          "sha256": "fb83ce924ed390dcdbc47883682193d233c782cd19d9610946c3e4e3c2e5ef38"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "bytes": 125,
+          "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+        },
+        {
+          "path": "vocab.txt",
+          "bytes": 226150,
+          "sha256": "79489a52be45e6fa033521e8ce8e4f62aedc0a742ee2aa6fc04667e5b0b1454d"
+        }
+      ]
+    }
+  ]
+}

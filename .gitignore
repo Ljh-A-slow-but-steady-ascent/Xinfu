@@ -2,6 +2,10 @@
 .local/
 .run/
 logs/
+*.log
+*.pid
+*.tmp
+*.cache
 .conda/
 .pytest_cache/
 __pycache__/
@@ -17,20 +21,45 @@ __pycache__/
 .codex/
 .agents/
 .vscode/
-data/uploads/
-data/cases/
-data/pad_ufes20/
+frontend/node_modules/
+frontend/dist/
 
-# Gated model artifacts must remain local and must not be redistributed.
+# Generated UI captures and retrieval diagnostics.
+artifacts/ui/
+artifacts/rag/
+
+# Review credentials and presentation authoring outputs are delivered separately.
+artifacts/review/
+artifacts/presentation/
+artifacts/presentation_redesign/
+artifacts/case_studies/
+
+# Runtime databases, uploaded cases, and local datasets.
+data/
+
+# Model parameters are versioned on Hugging Face, separately from source code.
 checkpoints/
 weights/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.bin
 
 # Local datasets, upstream archives, and generated feature caches.
 third_party/DermFM-Zero/data/
 third_party/DermFM-Zero/linear_probe.zip
 third_party/_archives/
 artifacts/case_study/
-artifacts/*.log
 artifacts/.fuse_hidden*
-artifacts/training/**/*_features.pt
-artifacts/training/pad_multimodal_mvp/
+artifacts/installers/
+
+# Generated archives and operating-system debris.
+*.zip
+!frontend/public/review/xinfu-review-cases.zip
+*.tar
+*.tar.gz
+*.7z
+.DS_Store
+Thumbs.db

@@ -1,0 +1,178 @@
+/* Xinfu brand and access screen. Component-scoped to coexist with the app theme. */
+.xf-brand-mark{display:inline-flex;align-items:center;justify-content:center;flex:none;color:#246e62;border-radius:28%;background:#e5eee7;position:relative;vertical-align:middle}
+.xf-brand-mark svg{width:83%;height:83%;overflow:visible}.xf-brand-signal{fill:#b7a56c}.xf-brand-mark--light{color:#e2f1e9;background:rgba(231,247,235,.08);border:1px solid rgba(216,238,226,.13)}
+.xf-brand-lockup{display:inline-flex;align-items:center;gap:11px;color:#173a35;line-height:1}.xf-brand-wordmark{display:flex;flex-direction:column;gap:7px}.xf-brand-wordmark strong{font-size:24px;letter-spacing:.03em;font-weight:650}.xf-brand-wordmark-dot{color:#a89b66;margin-left:2px}.xf-brand-wordmark small{font-size:8px;font-weight:500;letter-spacing:.19em;white-space:nowrap}.xf-brand-lockup--light{color:#e9f1ec}.xf-brand-lockup--light .xf-brand-wordmark small{color:#9cb4a8}
+
+/* One continuous canvas carries the story, the transition and the form. */
+.xf-login {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(390px, .9fr);
+  min-height: 100dvh;
+  color: #213e33;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(ellipse at 43% 70%, #dce6c91c, transparent 43%),
+    radial-gradient(ellipse at 8% 12%, #6d9f8524, transparent 41%),
+    radial-gradient(ellipse at 88% 5%, #e0e7d6a6, transparent 35%),
+    linear-gradient(90deg, #1b3534 0%, #24453e 38%, #3e5d50 47%, #849b89 55%, #c9d5c2 62%, #edf1e7 71%, #f6f7f1 85%);
+}
+.xf-login::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .09;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' opacity='.24' d='M0 0h100v100H0z'/%3E%3C/svg%3E");
+}
+.xf-login-story, .xf-login-access { position: relative; display: flex; flex-direction: column; min-width: 0; background: transparent; }
+.xf-login-story { min-height: 100dvh; padding: 38px clamp(28px, 3.5vw, 64px) 28px; color: #eaf0e5; }
+.xf-login-story-head, .xf-login-story-main, .xf-login-story-foot { position: relative; z-index: 1; }
+.xf-login-story-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.xf-login-story-main { width: 100%; max-width: 760px; margin: auto 0; padding: 38px 0 25px; }
+.xf-login h1 { margin: 12px 0 17px; font-size: clamp(34px, 3.15vw, 57px); font-weight: 500; letter-spacing: -.045em; line-height: 1.3; }
+.xf-login h1 em { margin-left: 2px; color: #d9dfb8; font-style: normal; }
+.xf-login-intro { margin: 0; color: #b7c7b7; font-size: 13px; line-height: 1.9; letter-spacing: .025em; }
+.xf-login-ambient { position: absolute; width: 430px; height: 430px; border-radius: 50%; pointer-events: none; filter: blur(90px); opacity: .12; animation: xf-login-breathe 14s ease-in-out infinite alternate; }
+.xf-login-ambient--one { top: 24%; right: -120px; background: #b8ce9b; }
+.xf-login-ambient--two { bottom: 0; left: -150px; background: #6eae97; animation-delay: -7s; }
+.xf-login-story-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 23px; border-top: 1px solid #cfddbd1c; color: #a2b6a3; font-size: 9px; letter-spacing: .03em; }
+.xf-login-story-foot > div { display: flex; gap: 17px; }
+.xf-login-story-foot > div > span { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+
+/* The robot and its five component cards stay together at each breakpoint. */
+.xf-login-landscape { position: relative; isolation: isolate; width: 100%; max-width: 760px; margin: 30px 0 0; height: clamp(300px, 40vh, 450px); animation: xf-login-rise .8s .12s ease both; }
+.xf-anatomy-grid { position: absolute; inset: 22px 18px 12px; opacity: .2; pointer-events: none; mask-image: radial-gradient(ellipse at center, #000, transparent 74%); background-image: linear-gradient(#b6d1bc12 1px, transparent 1px), linear-gradient(90deg, #b6d1bc12 1px, transparent 1px); background-size: 25px 25px; }
+.xf-anatomy-connectors { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.xf-anatomy-connectors > path { stroke: #c1d2b1; stroke-opacity: .45; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+.xf-anatomy-connector-signals { fill: #d2deb6; }
+.xf-anatomy-connector-signals circle { animation: xf-anatomy-pulse 4s ease-in-out infinite; }
+.xf-anatomy-connector-signals circle:nth-child(2) { animation-delay: -.8s; }
+.xf-anatomy-connector-signals circle:nth-child(3) { animation-delay: -1.6s; }
+.xf-anatomy-connector-signals circle:nth-child(4) { animation-delay: -2.4s; }
+.xf-anatomy-connector-signals circle:nth-child(5) { animation-delay: -3.2s; }
+.xf-anatomy-robot { position: absolute; left: 34.5%; top: 3%; width: 31%; height: 90%; overflow: visible; filter: drop-shadow(0 18px 20px #0c292b38); }
+.xf-anatomy-robot-figure { animation: xf-anatomy-float 7s ease-in-out infinite; transform-origin: 110px 190px; }
+.xf-anatomy-eyes { animation: xf-anatomy-eyes 8s ease-in-out infinite; transform-origin: 110px 76px; }
+.xf-anatomy-card { position: absolute; display: flex; align-items: center; gap: 10px; width: 29%; min-height: 76px; padding: 13px 12px; border: 1px solid #ccdfbf30; border-radius: 13px; background: linear-gradient(135deg, #365448e8, #29483ee8); box-shadow: 0 8px 24px #0e2a2414, inset 0 1px 0 #f6ffe506; backdrop-filter: blur(12px); transition: border-color .25s, background .25s; }
+.xf-anatomy-card:hover { border-color: #d7e7bf66; background: #3a5b4eed; }
+.xf-anatomy-card-icon { display: grid; place-items: center; flex: none; width: 29px; height: 32px; border-radius: 9px; color: #ccdfbd; background: #d0e0b60c; border: 1px solid #d0e0b620; }
+.xf-anatomy-card > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.xf-anatomy-card strong { color: #f0f2e6; font-size: 12px; font-weight: 550; line-height: 1.5; letter-spacing: .01em; }
+.xf-anatomy-card small { color: #bdcdb5; font-size: 10px; line-height: 1.65; overflow-wrap: anywhere; }
+.xf-anatomy-card--brain { left: 0; top: 4%; }
+.xf-anatomy-card--vision { right: 0; top: 19%; }
+.xf-anatomy-card--embedding { left: 0; top: 36%; }
+.xf-anatomy-card--tools { right: 0; top: 56%; }
+.xf-anatomy-card--knowledge { left: 0; top: 70%; }
+.xf-anatomy-card--knowledge .xf-anatomy-card-icon { color: #e3dfb4; border-color: #ded8b533; background: #ded8b50b; }
+
+.xf-login-access { justify-content: space-between; padding: 42px clamp(28px, 4vw, 72px) 28px 30px; }
+.xf-login-access-top { display: flex; align-items: center; justify-content: flex-end; gap: 12px; color: #778c75; font-size: 10px; letter-spacing: .08em; }
+.xf-login-form { width: min(402px, 100%); margin: auto; padding: 36px; border: 1px solid #fffffff0; border-radius: 26px; background: linear-gradient(145deg, #fcfdf6c9, #f9fbf4a3); box-shadow: 0 24px 65px #2b503e0c, 0 2px 8px #2b503e04; backdrop-filter: blur(20px); animation: xf-login-rise .65s ease both; }
+.xf-login-form-glyph { margin-bottom: 27px; }
+.xf-login-form-glyph .xf-brand-mark { box-shadow: inset 0 0 0 1px #c4d5bb4d; background: #e5eddd; }
+.xf-login h2 { margin: 0 0 12px; color: #253f32; font-size: clamp(24px, 2.2vw, 31px); font-weight: 550; letter-spacing: -.045em; line-height: 1.4; }
+.xf-login-form-intro { margin: 0 0 31px; color: #7c8b77; font-size: 13px; line-height: 1.7; }
+.xf-login-label { display: flex; flex-direction: column; gap: 10px; margin-top: 21px; color: #53694f; font-size: 12px; font-weight: 550; }
+.xf-login-label input { width: 100%; height: 49px; min-width: 0; padding: 0 14px; border: 1px solid #ccd8c3; border-radius: 11px; outline: 0; background: #ffffffb5; color: #203c2d; font-size: 14px; font-weight: 400; transition: border-color .2s, box-shadow .2s, background .2s; }
+.xf-login-label input::placeholder { color: #9ca994; font-size: 13px; }
+.xf-login-label input:hover { border-color: #afc3a4; background: #ffffffde; }
+.xf-login-label input:focus { border-color: #6a9373; outline: 0; box-shadow: 0 0 0 4px #78986b17; background: #fffffff2; }
+.xf-login-label input:disabled { opacity: .6; }
+.xf-login-label input:-webkit-autofill { -webkit-text-fill-color: #203c2d; box-shadow: 0 0 0 1000px #f0f4e9 inset; }
+.xf-login-label input:-webkit-autofill:focus { box-shadow: 0 0 0 1000px #f4f7ee inset, 0 0 0 4px #78986b17; }
+.xf-login-password-wrap { position: relative; display: block; }
+.xf-login-password-wrap input { padding-right: 46px; }
+.xf-login-reveal { position: absolute; inset: 0 5px 0 auto; display: grid; place-items: center; width: 38px; border: 0; border-radius: 9px; background: none; color: #899b7f; cursor: pointer; }
+.xf-login-reveal:hover { color: #365d3e; }
+.xf-login-reveal:focus-visible { outline: 2px solid #83aa93; outline-offset: -5px; }
+.xf-login-submit { display: flex; align-items: center; justify-content: space-between; gap: 9px; width: 100%; height: 49px; margin-top: 29px; padding: 0 17px; border: 1px solid #365f47; border-radius: 11px; background: linear-gradient(115deg, #355e48, #466e51); color: #f5f7ec; box-shadow: 0 4px 10px #2c4f3e16, inset 0 1px 0 #d3e3bb1a; font-size: 13px; font-weight: 550; cursor: pointer; transition: box-shadow .2s, transform .2s, filter .2s; }
+.xf-login-submit:hover:not(:disabled) { filter: brightness(1.06); box-shadow: 0 7px 18px #2c4f3e26; transform: translateY(-1px); }
+.xf-login-submit:active:not(:disabled) { transform: translateY(0); }
+.xf-login-submit:focus-visible { outline: 3px solid #a5ba94; outline-offset: 3px; }
+.xf-login-submit:disabled { cursor: default; opacity: .72; box-shadow: none; }
+.xf-login-error { padding: 11px 12px; margin-top: 14px; border: 1px solid #ebd6cc; border-radius: 9px; color: #98604a; background: #f9efea; font-size: 12px; line-height: 1.5; }
+.xf-login-access-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #87987d; font-size: 9px; }
+.xf-login-access-foot > span:last-child { color: #778e6a; font-size: 8px; font-weight: 600; letter-spacing: .2em; }
+
+@keyframes xf-login-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes xf-login-breathe { from { opacity: .09; transform: translate3d(0,0,0) scale(1); } to { opacity: .16; transform: translate3d(-15px,10px,0) scale(1.08); } }
+@keyframes xf-anatomy-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes xf-anatomy-pulse { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+@keyframes xf-anatomy-eyes { 0%, 42%, 46%, 100% { opacity: 1; } 44% { opacity: .3; } }
+
+@media (min-width: 1600px) {
+  .xf-login-story { padding-top: 46px; padding-bottom: 34px; }
+  .xf-login-story-main { max-width: 760px; margin: auto; }
+  .xf-login-landscape { height: clamp(330px, 42vh, 470px); margin-top: 32px; }
+  .xf-login-form { width: 420px; padding: 42px; }
+  .xf-login-access { padding-top: 48px; padding-bottom: 34px; }
+}
+@media (min-width: 851px) and (max-width: 1150px) {
+  .xf-login-story { padding: 30px 29px 24px; }
+  .xf-login-story-main { padding: 28px 0 18px; }
+  .xf-login h1 { font-size: 36px; }
+  .xf-login-landscape { height: clamp(295px, 38vh, 390px); margin-top: 24px; }
+  .xf-anatomy-card { width: 29%; padding: 11px 9px; gap: 7px; min-height: 74px; }
+  .xf-anatomy-card-icon { width: 24px; height: 28px; border-radius: 7px; }
+  .xf-anatomy-card-icon svg { width: 15px; }
+  .xf-anatomy-card strong { font-size: 11px; }
+  .xf-anatomy-card small { font-size: 9px; }
+  .xf-anatomy-card--vision { top: 17%; }
+  .xf-anatomy-card--knowledge { top: 69%; }
+  .xf-login-access { padding: 32px 28px 24px 20px; }
+  .xf-login-form { padding: 31px; }
+  .xf-login-story-foot { gap: 9px; }
+  .xf-login-story-foot > div { gap: 10px; }
+}
+@media (max-width: 850px) {
+  .xf-login { grid-template-columns: minmax(0, 1fr); overflow: hidden; background: radial-gradient(ellipse at 5% 8%, #6c9e7d22, transparent 35%), linear-gradient(180deg, #1d3c35 0%, #2e5041 39%, #829b80 49%, #cfdcc5 57%, #eff3e8 67%, #f6f7f0 85%); }
+  .xf-login-story { min-height: auto; padding: 26px 30px 24px; }
+  .xf-login-story-main { max-width: 520px; margin: 0 auto; padding: 28px 0 0; }
+  .xf-login-story-head { max-width: 520px; width: 100%; margin: 0 auto; }
+  .xf-login h1 { margin: 12px 0; font-size: 35px; }
+  .xf-login-intro { font-size: 13px; }
+  .xf-login-story-foot { display: none; }
+  .xf-login-ambient { width: 300px; height: 300px; filter: blur(70px); }
+  .xf-login-landscape { display: grid; grid-template-columns: 105px minmax(0, 1fr); align-items: center; gap: 17px; height: auto; min-height: 280px; margin-top: 26px; }
+  .xf-anatomy-connectors { display: none; }
+  .xf-anatomy-grid { inset: 0; opacity: .15; }
+  .xf-anatomy-robot { position: relative; left: auto; top: auto; width: 105px; height: 230px; }
+  .xf-anatomy-cards { position: relative; display: grid; gap: 7px; }
+  .xf-anatomy-card { position: relative; inset: auto; width: 100%; min-height: 48px; padding: 8px 11px; gap: 10px; border-radius: 10px; background: #294d3fe8; }
+  .xf-anatomy-card-icon { width: 27px; height: 29px; border-radius: 7px; }
+  .xf-anatomy-card-icon svg { width: 15px; }
+  .xf-anatomy-card > div { gap: 3px; }
+  .xf-anatomy-card strong { font-size: 12px; line-height: 1.4; }
+  .xf-anatomy-card small { font-size: 10px; line-height: 1.5; }
+  .xf-login-access { gap: 30px; min-height: auto; padding: 12px 30px 25px; }
+  .xf-login-access-top { display: none; }
+  .xf-login-form { width: min(420px, 100%); margin: 0 auto; padding: 30px; border-radius: 23px; }
+  .xf-login-form-glyph { display: none; }
+  .xf-login h2 { margin-bottom: 10px; font-size: 26px; }
+  .xf-login-form-intro { margin-bottom: 24px; }
+  .xf-login-label { margin-top: 19px; font-size: 13px; }
+  .xf-login-label input { font-size: 16px; }
+  .xf-login-submit { margin-top: 25px; font-size: 14px; }
+  .xf-login-access-foot { width: min(420px, 100%); margin: 0 auto; }
+}
+@media (max-width: 420px) {
+  .xf-login-story { padding: 24px 24px 23px; }
+  .xf-login-story-head .xf-brand-mark { width: 36px !important; height: 36px !important; }
+  .xf-login-story-head .xf-brand-wordmark strong { font-size: 23px; }
+  .xf-login h1 { font-size: 31px; }
+  .xf-login-landscape { grid-template-columns: 83px minmax(0, 1fr); gap: 12px; min-height: 270px; margin-top: 23px; }
+  .xf-anatomy-robot { width: 86px; height: 210px; }
+  .xf-anatomy-card { padding: 8px; gap: 7px; }
+  .xf-anatomy-card-icon { width: 24px; height: 27px; }
+  .xf-login-access { padding: 9px 20px 23px; }
+  .xf-login-form { padding: 27px 23px; }
+  .xf-login h2 { font-size: 25px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .xf-login *, .xf-login *::before, .xf-login *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

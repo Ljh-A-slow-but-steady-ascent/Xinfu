@@ -13,9 +13,9 @@ def create_mcp_server(services: ServiceContainer | None = None) -> FastMCP:
     services = services or create_service_container()
     registry = create_tool_registry(services)
     server = FastMCP(
-        name="dermaguard-local-tools",
+        name="xinfu-local-tools",
         instructions=(
-            "DermaGuard local evidence, policy, care-pathway, guideline, and privacy tools. "
+            "Xinfu public-web search and reading, evidence, care-pathway, guideline, and privacy tools. "
             "Never request or return raw medical image bytes or patient identity."
         ),
     )
@@ -53,6 +53,19 @@ def create_mcp_server(services: ServiceContainer | None = None) -> FastMCP:
         return call.result
 
     @server.tool(structured_output=True)
+    async def search_evidence(queries: list[str], top_k: int = 8) -> dict[str, Any]:
+        """Search local evidence snippets; the calling agent chooses rewritten queries."""
+        call = await registry.invoke("search_evidence", {"queries": queries, "top_k": top_k})
+        return call.result
+
+    @server.tool(structured_output=True)
+    async def read_evidence(evidence_ids: list[str], include_neighbors: bool = True) -> dict[str, Any]:
+        """Read complete evidence paragraphs and their neighboring context."""
+        call = await registry.invoke("read_evidence", {
+            "evidence_ids": evidence_ids, "include_neighbors": include_neighbors})
+        return call.result
+
+    @server.tool(structured_output=True)
     async def get_care_pathway(case_id: str) -> dict[str, Any]:
         """Read the next-care pathway bound to the policy result."""
         call = await registry.invoke(
@@ -71,6 +84,26 @@ def create_mcp_server(services: ServiceContainer | None = None) -> FastMCP:
             ToolContext(case_id=case_id, channel="mcp", destination="mcp_client"),
         )
         return call.result
+
+    @server.tool(structured_output=True)
+    async def web_search(query: str, top_k: int = 5, time_range: str | None = None) -> dict[str, Any]:
+        """Search public webpages for information across topics."""
+        call = await registry.invoke(
+            "web_search", {"query": query, "top_k": top_k, "time_range": time_range},
+            ToolContext(channel="http", destination="public_search_engines"),
+        )
+        return call.result
+
+    @server.tool(structured_output=True)
+    async def read_webpage(url: str, max_chars: int = 14000, focus: str | None = None) -> dict[str, Any]:
+        """Read public webpage content to verify search results or a supplied URL."""
+        return (await registry.invoke("read_webpage", {"url": url, "max_chars": max_chars, "focus": focus})).result
+
+    @server.tool(structured_output=True)
+    async def get_weather(city: str, country_code: str | None = None, days: int = 1) -> dict[str, Any]:
+        """Read current weather and forecast for a user-specified city."""
+        return (await registry.invoke("get_weather", {"city": city, "country_code": country_code, "days": days},
+                                     ToolContext(channel="http", destination="api.open-meteo.com"))).result
 
     return server
 

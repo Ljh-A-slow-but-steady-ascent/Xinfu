@@ -1,0 +1,46 @@
+[
+  {
+    "case": "A",
+    "image": "case-a.png",
+    "prompt": "case-a.txt",
+    "original_image": "PAT_320_681_724.png",
+    "reference_label": "MEL",
+    "sha256": "a53330564eed12683baf515384339d4b20b19f970d25ae00612d39bb1826548c",
+    "metadata": {
+      "age": "70",
+      "gender": "MALE",
+      "region": "FACE",
+      "diameter_1": "9.0",
+      "diameter_2": "9.0",
+      "itch": "FALSE",
+      "hurt": "FALSE",
+      "bleed": "FALSE",
+      "grew": "TRUE",
+      "changed": "TRUE",
+      "skin_cancer_history": "False",
+      "cancer_history": "False"
+    }
+  },
+  {
+    "case": "B",
+    "image": "case-b.png",
+    "prompt": "case-b.txt",
+    "original_image": "PAT_645_1223_124.png",
+    "reference_label": "BCC",
+    "sha256": "24f7dac0562ad74799afe4ce78a1df26f800a8915d42b81cbeb9a5259f05c52c",
+    "metadata": {
+      "age": "57",
+      "gender": "FEMALE",
+      "region": "CHEST",
+      "diameter_1": "10.0",
+      "diameter_2": "5.0",
+      "itch": "FALSE",
+      "hurt": "FALSE",
+      "bleed": "TRUE",
+      "grew": "TRUE",
+      "changed": "TRUE",
+      "skin_cancer_history": "True",
+      "cancer_history": "False"
+    }
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {"label": "皮肤肿瘤", "chunks": 188000},
+  {"label": "炎症与过敏", "chunks": 165000},
+  {"label": "感染性皮肤病", "chunks": 142000},
+  {"label": "诊断与病理", "chunks": 120000},
+  {"label": "药物与安全", "chunks": 110000},
+  {"label": "色素性疾病", "chunks": 92000},
+  {"label": "毛发与甲病", "chunks": 78000},
+  {"label": "免疫与罕见病", "chunks": 70000},
+  {"label": "儿童皮肤病", "chunks": 62000},
+  {"label": "照护与转诊", "chunks": 55000}
+]

@@ -1,0 +1,269 @@
+{
+  "version": "xinfu-model-v3",
+  "total_parameters": 86005383,
+  "trainable_parameters": 5383,
+  "frozen_parameters": 86000000,
+  "trainable_ratio": 6.26e-05,
+  "trainable_ratio_percent": 0.0063,
+  "layers": [
+    {
+      "id": "vision_encoder",
+      "label": "视觉编码器",
+      "parameters": 48000000,
+      "trainable": 0,
+      "state": "FROZEN",
+      "role": "DermFM-Zero image tower"
+    },
+    {
+      "id": "text_encoder",
+      "label": "文本编码器",
+      "parameters": 38000000,
+      "trainable": 0,
+      "state": "FROZEN",
+      "role": "临床 Prompt encoder"
+    },
+    {
+      "id": "fusion_head",
+      "label": "跨模态融合头",
+      "parameters": 3920,
+      "trainable": 3920,
+      "state": "TRAINABLE",
+      "role": "image / text alignment"
+    },
+    {
+      "id": "classifier",
+      "label": "分类头",
+      "parameters": 1463,
+      "trainable": 1463,
+      "state": "TRAINABLE",
+      "role": "6 类候选输出"
+    }
+  ],
+  "weight_histograms": [
+    {
+      "name": "fusion_head.weight",
+      "shape": "[3920, 1]",
+      "mean": 0.0021,
+      "std": 0.047,
+      "min": -0.182,
+      "max": 0.196,
+      "delta": 0.018,
+      "gradient_norm": 0.084,
+      "updated_elements": 3920,
+      "bins": [
+        3,
+        9,
+        18,
+        31,
+        43,
+        38,
+        25,
+        13,
+        6
+      ]
+    },
+    {
+      "name": "fusion_head.bias",
+      "shape": "[3920]",
+      "mean": -0.004,
+      "std": 0.021,
+      "min": -0.071,
+      "max": 0.064,
+      "delta": 0.006,
+      "gradient_norm": 0.031,
+      "updated_elements": 3920,
+      "bins": [
+        2,
+        7,
+        16,
+        29,
+        36,
+        30,
+        17,
+        8,
+        3
+      ]
+    },
+    {
+      "name": "classifier.weight",
+      "shape": "[6, 244]",
+      "mean": 0.011,
+      "std": 0.083,
+      "min": -0.294,
+      "max": 0.311,
+      "delta": 0.011,
+      "gradient_norm": 0.067,
+      "updated_elements": 1463,
+      "bins": [
+        4,
+        12,
+        21,
+        34,
+        48,
+        42,
+        27,
+        15,
+        7
+      ]
+    }
+  ],
+  "activation_distributions": [
+    {
+      "name": "视觉嵌入",
+      "short_name": "vision",
+      "mean": 0.03,
+      "std": 0.86,
+      "sparsity": 0.12,
+      "p95": 1.62,
+      "bins": [
+        5,
+        10,
+        18,
+        28,
+        41,
+        46,
+        33,
+        20,
+        9
+      ]
+    },
+    {
+      "name": "文本嵌入",
+      "short_name": "text",
+      "mean": -0.01,
+      "std": 0.72,
+      "sparsity": 0.18,
+      "p95": 1.38,
+      "bins": [
+        8,
+        15,
+        25,
+        36,
+        45,
+        42,
+        29,
+        16,
+        7
+      ]
+    },
+    {
+      "name": "融合表示",
+      "short_name": "fusion",
+      "mean": 0.02,
+      "std": 0.64,
+      "sparsity": 0.09,
+      "p95": 1.21,
+      "bins": [
+        3,
+        8,
+        17,
+        32,
+        49,
+        45,
+        31,
+        17,
+        6
+      ]
+    }
+  ],
+  "embedding_summary": {
+    "projection": "PCA-2D",
+    "sample_count": 12,
+    "cluster_count": 3,
+    "separation_score": 0.82,
+    "clusters": [
+      {
+        "group": "nevus",
+        "label": "色素痣",
+        "count": 4,
+        "compactness": 0.86
+      },
+      {
+        "group": "melanoma",
+        "label": "高风险候选",
+        "count": 4,
+        "compactness": 0.79
+      },
+      {
+        "group": "other",
+        "label": "其他候选",
+        "count": 4,
+        "compactness": 0.74
+      }
+    ]
+  },
+  "embedding_map": [
+    {
+      "x": 18,
+      "y": 28,
+      "group": "nevus",
+      "label": "色素痣"
+    },
+    {
+      "x": 24,
+      "y": 34,
+      "group": "nevus",
+      "label": "色素痣"
+    },
+    {
+      "x": 31,
+      "y": 24,
+      "group": "nevus",
+      "label": "色素痣"
+    },
+    {
+      "x": 27,
+      "y": 43,
+      "group": "nevus",
+      "label": "色素痣"
+    },
+    {
+      "x": 59,
+      "y": 26,
+      "group": "melanoma",
+      "label": "黑色素瘤"
+    },
+    {
+      "x": 67,
+      "y": 35,
+      "group": "melanoma",
+      "label": "黑色素瘤"
+    },
+    {
+      "x": 73,
+      "y": 22,
+      "group": "melanoma",
+      "label": "黑色素瘤"
+    },
+    {
+      "x": 63,
+      "y": 46,
+      "group": "melanoma",
+      "label": "黑色素瘤"
+    },
+    {
+      "x": 43,
+      "y": 65,
+      "group": "other",
+      "label": "其他候选"
+    },
+    {
+      "x": 50,
+      "y": 73,
+      "group": "other",
+      "label": "其他候选"
+    },
+    {
+      "x": 37,
+      "y": 76,
+      "group": "other",
+      "label": "其他候选"
+    },
+    {
+      "x": 56,
+      "y": 61,
+      "group": "other",
+      "label": "其他候选"
+    }
+  ]
+}

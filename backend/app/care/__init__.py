@@ -1,10 +1,9 @@
-from .provider import CarePathwayProvider, DeterministicCarePathwayProvider
+from .provider import DeterministicCarePathwayProvider
 from .schemas import CarePathway, CarePathwayLevel, ClinicalMetadata, RequestContext
 
 __all__ = [
     "CarePathway",
     "CarePathwayLevel",
-    "CarePathwayProvider",
     "ClinicalMetadata",
     "DeterministicCarePathwayProvider",
     "RequestContext",

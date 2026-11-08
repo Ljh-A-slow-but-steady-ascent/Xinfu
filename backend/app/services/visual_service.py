@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import json
-import os
-import subprocess
 from pathlib import Path
 from typing import Protocol
 
@@ -10,12 +7,7 @@ from backend.app.care.schemas import CandidatePrediction, ClinicalMetadata, Visu
 from backend.app.database import CaseRepository
 from backend.app.services.case_service import CaseService
 from backend.app.services.vision.quality import assess_image_quality
-
-
-DERMFM_PYTHON = Path(
-    os.getenv("DERMAGUARD_VISION_PYTHON", "/home/lu/miniforge3/envs/dermfm-zero/bin/python")
-)
-WORKER = Path(__file__).resolve().parent / "frozen_dermfm_worker.py"
+from backend.app.services.vision_worker import worker
 
 
 class VisualRunner(Protocol):
@@ -23,30 +15,10 @@ class VisualRunner(Protocol):
 
 
 class FrozenDermFMSubprocessRunner:
-    """Runs the trained PAD multimodal adapter in its isolated environment."""
+    """Runs the trained adapter through the shared, isolated model worker."""
 
     def predict(self, image_path: Path, clinical_metadata: ClinicalMetadata) -> dict:
-        completed = subprocess.run(
-            [
-                str(DERMFM_PYTHON), str(WORKER), "--image", str(image_path),
-                "--top-k", "3",
-            ],
-            cwd=str(Path(__file__).resolve().parents[3]),
-            capture_output=True,
-            text=True,
-            input=clinical_metadata.model_dump_json(),
-            timeout=240,
-            check=False,
-        )
-        if completed.returncode != 0:
-            raise RuntimeError(f"DermFM worker failed: {completed.stderr[-1000:]}")
-        line = next(
-            (item for item in reversed(completed.stdout.splitlines()) if item.startswith("DERMAGUARD_RESULT=")),
-            None,
-        )
-        if line is None:
-            raise RuntimeError("DermFM worker returned no structured result")
-        return json.loads(line.removeprefix("DERMAGUARD_RESULT="))
+        return worker.predict(image_path, clinical_metadata.model_dump(mode="json"))
 
 
 class VisualService:

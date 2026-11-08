@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17342e" />
+    <meta name="description" content="信肤工作台，整理病例、资料与工作记录。" />
+    <link rel="icon" type="image/svg+xml" href="/xinfu-mark.svg" />
+    <title>信肤 · Xinfu</title>
+  </head>
+  <body>
+    <div id="root">
+      <div data-boot-screen style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f5f7f1;color:#294b40;font-family:system-ui,sans-serif;text-align:center">
+        <div><strong style="display:block;font-size:30px;font-weight:500;letter-spacing:4px">信肤<span style="color:#ac9566">.</span></strong><p data-boot-message style="font-size:14px;color:#6b7d71;margin:20px 24px">正在打开工作台…</p><button data-boot-retry hidden style="padding:10px 24px;border:1px solid #cad7c8;border-radius:8px;background:#fff;color:#294b40;font-size:14px" onclick="location.reload()">重新打开</button></div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        function showRetry(message) {
+          var screen = document.querySelector('[data-boot-screen]');
+          if (!screen) return;
+          screen.querySelector('[data-boot-message]').textContent = message;
+          screen.querySelector('[data-boot-retry]').hidden = false;
+        }
+        window.addEventListener('error', function () { showRetry('页面加载中断，请重新打开。'); }, true);
+        window.addEventListener('unhandledrejection', function () { showRetry('页面加载中断，请重新打开。'); });
+        setTimeout(function () { showRetry('连接较慢，请稍候或重新打开。'); }, 15000);
+      })();
+    </script>
+    <noscript>请使用已启用 JavaScript 的浏览器打开信肤工作台。</noscript>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

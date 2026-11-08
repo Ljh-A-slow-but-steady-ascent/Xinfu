@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+import shutil
 from uuid import uuid4
 
 from backend.app.database import CaseRepository
@@ -55,3 +56,11 @@ class CaseService:
         if record is None:
             raise KeyError(f"case not found: {case_id}")
         return Path(record.local_image_path)
+
+    def delete(self, case_id: str, user_id: int) -> None:
+        """Delete an owned case and remove only its validated local asset directory."""
+        image_path = self.repository.delete_case_record(case_id, user_id=user_id)
+        case_dir = Path(image_path).resolve().parent
+        root = self.data_root.resolve()
+        if case_dir != root and root in case_dir.parents:
+            shutil.rmtree(case_dir, ignore_errors=True)

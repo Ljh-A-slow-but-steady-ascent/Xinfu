@@ -1,0 +1,11 @@
+信肤评审验收材料
+
+病例A：case-a.png + case-a.txt。
+病例B：case-b.png + case-b.txt。
+
+操作：新对话 → 标准 → ＋ → 常规图片 → 选择PNG → 复制对应TXT内容发送 → 核对创建预览 → 确认创建并分析。复测时可更换门诊号末尾序号。
+
+图片与临床字段来源：PAD-UFES-20，Pacheco et al., 2020。
+数据集 DOI：https://doi.org/10.17632/zr7vgbcyr2.1
+许可：CC BY 4.0。图片保持原始文件，病例姓名与门诊号为本项目验收操作标识。
+参考标签存于 case-metadata.json，输入病例描述时不包含标签。

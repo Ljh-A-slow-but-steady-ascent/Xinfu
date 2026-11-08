@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from typing import Any
+from functools import partial
+from anyio import to_thread
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -27,8 +29,5 @@ class SearchGuidelineTool:
 
     async def invoke(self, arguments: dict[str, Any], context: ToolContext) -> dict[str, Any]:
         request = Input.model_validate(arguments)
-        chunks = self.service.search(request.query, top_k=request.top_k)
-        return {
-            "chunks": chunks,
-            "evidence_assembly": self.service.assemble_evidence(chunks),
-        }
+        return await to_thread.run_sync(partial(self.service.retrieve, request.query,
+                                                top_k=request.top_k, case_id=request.case_id))

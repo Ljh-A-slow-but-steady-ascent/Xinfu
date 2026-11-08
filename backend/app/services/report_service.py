@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from backend.app.chat.mock import create_chat_provider
+from backend.app.chat.factory import create_chat_provider
 from backend.app.services.dermfm_candidate_sets import display_label_zh
 from backend.app.services.privacy import EgressGuard, EgressRequest, sanitize_text
 
@@ -74,11 +74,12 @@ def _mask_text(value: Any, replacements: list[str]) -> Any:
 
 def render_report(patient: dict[str, Any], case_id: str, structured: dict[str, Any]) -> str:
     return "\n".join([
-        "# 霁肤 · Jiderma 皮肤辅助诊断报告", "",
+        "# 信肤 · Xinfu 皮肤辅助诊断报告", "",
         "## 患者信息",
         f"- 姓名：{patient['name']}", f"- 性别：{patient['sex']}",
         f"- 年龄：{patient['age']} 岁", f"- 门诊号：{patient['outpatient_no']}",
         f"- 病灶部位：{patient['lesion_site']}", f"- 病例编号：{case_id}", "",
+        "## 患者病灶图像", f"![患者病灶图片](/v1/cases/{case_id}/image)", "",
         "## 主诉与病史摘要", structured["clinical_summary"], "",
         "## 图像辅助分析", structured["visual_summary"], "",
         "## 风险与病例信息", structured["risk_interpretation"], "",

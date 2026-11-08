@@ -14,7 +14,10 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 class RagConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
     top_k: int = Field(3, ge=1, le=10)
-    evidence_threshold: float = Field(0.5, ge=0, le=1)
+    candidate_k: int = Field(8, ge=1, le=16)
+    max_tool_calls: int = Field(8, ge=1, le=20)
+    max_model_turns: int = Field(10, ge=2, le=24)
+    max_seconds: float = Field(45.0, ge=1, le=120)
 
 
 class VisionConfig(BaseModel):
