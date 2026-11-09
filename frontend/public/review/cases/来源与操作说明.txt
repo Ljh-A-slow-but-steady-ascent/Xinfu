@@ -1,4 +1,4 @@
-信肤评审验收材料
+信肤病例使用材料
 
 病例A：case-a.png + case-a.txt。
 病例B：case-b.png + case-b.txt。
@@ -7,5 +7,5 @@
 
 图片与临床字段来源：PAD-UFES-20，Pacheco et al., 2020。
 数据集 DOI：https://doi.org/10.17632/zr7vgbcyr2.1
-许可：CC BY 4.0。图片保持原始文件，病例姓名与门诊号为本项目验收操作标识。
+许可：CC BY 4.0。图片保持原始文件，病例姓名与门诊号为本项目操作标识。
 参考标签存于 case-metadata.json，输入病例描述时不包含标签。
